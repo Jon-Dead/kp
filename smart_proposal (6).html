@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Стратегия QA для [Client Name] — VeriFlow</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #07090e;
+      --bg-surface: #0e121b;
+      --bg-surface-elevated: #151b27;
+      
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(56, 189, 248, 0.28);
+      --border-accent: rgba(59, 130, 246, 0.5);
+      --border-danger: rgba(239, 68, 68, 0.3);
+
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #94a3b8;
+      --color-text-muted: #64748b;
+
+      --accent-blue: #2563eb;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-danger: #ef4444;
+      --accent-orange: #f59e0b;
+      --accent-glow: rgba(37, 99, 235, 0.45);
+      --danger-glow: rgba(239, 68, 68, 0.35);
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-pill: 9999px;
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --transition-fast: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Background Effects */
+    .ambient-glow-top {
+      position: fixed;
+      top: -20%;
+      left: 20%;
+      width: 60vw;
+      height: 50vh;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, rgba(6, 182, 212, 0.03) 50%, transparent 80%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px; /* Узкий, сфокусированный контент для чтения */
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .proposal-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 1rem 0;
+    }
+
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .client-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--color-text-primary);
+    }
+
+    .client-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--bg-surface-elevated), var(--border-subtle));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-highlight);
+    }
+
+    section {
+      padding: 5rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    section:last-child {
+      border-bottom: none;
+    }
+
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .section-badge.danger {
+      color: var(--accent-danger);
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .section-title span {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-lead {
+      font-size: 1.05rem;
+      color: var(--color-text-secondary);
+      margin-bottom: 2.5rem;
+    }
+
+    .risk-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media(min-width: 640px) {
+      .risk-cards-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .risk-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      transition: all var(--transition-fast);
+    }
+    
+    .risk-card:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+    }
+
+    .risk-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      color: var(--accent-orange);
+    }
+
+    .risk-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+
+    .risk-desc {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .loss-calc-box {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, var(--bg-surface) 100%);
+      border: 1px solid var(--border-danger);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: 0 20px 40px -10px var(--danger-glow);
+    }
+
+    .slider-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .slider-value {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent-cyan);
+      height: 6px;
+      background: var(--bg-surface-elevated);
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .loss-result-area {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px dashed var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    @media(min-width: 640px) {
+      .loss-result-area {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .loss-block, .save-block {
+      flex: 1;
+    }
+
+    .loss-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+
+    .loss-amount {
+      font-size: 2.5rem;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--accent-danger);
+      line-height: 1;
+    }
+
+    .save-amount {
+      font-size: 1.5rem;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--accent-emerald);
+    }
+
+    .vs-badge {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+    }
+    @media(min-width: 640px) {
+      .vs-badge { display: flex; }
+    }
+
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    @media(min-width: 768px) {
+      .timeline-container {
+        flex-direction: row;
+        align-items: stretch;
+      }
+    }
+
+    .timeline-nav {
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 1rem;
+    }
+    @media(min-width: 768px) {
+      .timeline-nav {
+        flex-direction: column;
+        min-width: 200px;
+        border-right: 1px solid var(--border-subtle);
+        padding-right: 1.5rem;
+        padding-bottom: 0;
+      }
+    }
+
+    .timeline-tab {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-sm);
+      color: var(--color-text-secondary);
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    .timeline-tab:hover {
+      background: var(--bg-surface);
+      border-color: var(--border-highlight);
+    }
+    .timeline-tab.active {
+      background: rgba(37, 99, 235, 0.1);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .timeline-content {
+      flex: 1;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      min-height: 250px;
+    }
+
+    .roadmap-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .roadmap-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .roadmap-list li svg {
+      color: var(--accent-emerald);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      border: 1px solid transparent;
+      outline: none;
+      width: 100%;
+    }
+    @media(min-width: 480px) {
+      .btn { width: auto; }
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      color: #ffffff;
+      box-shadow: 0 10px 25px -5px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #3b82f6, var(--accent-blue));
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: rgba(14, 18, 27, 0.85);
+      border-color: rgba(255, 255, 255, 0.16);
+      color: #e2e8f0;
+    }
+    .btn-outline:hover {
+      background: var(--bg-surface-elevated);
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+
+    /* Calc specific (mini version) */
+    .mini-calc-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mini-calc-row:hover {
+      border-color: var(--border-highlight);
+    }
+    .mini-calc-row.active {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.05);
+    }
+    .calc-row-price {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+    .mini-calc-row.active .calc-row-price {
+      color: var(--accent-cyan);
+    }
+
+    .total-price-box {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: var(--bg-surface-elevated);
+      border-radius: var(--radius-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow-top"></div>
+
+  <header class="proposal-header">
+    <div class="container header-inner">
+      <div class="client-badge">
+        <div class="client-avatar" id="client-avatar-initial">T</div>
+        <span id="client-name-display">TechCorp Inc.</span>
+      </div>
+      
+      <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-text-muted);">
+        Подготовлено <span style="color: #fff; font-weight: 600;">VeriFlow</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="screen-hook">
+      <div class="container">
+        <div class="section-badge">Персональный разбор</div>
+        <h1 class="section-title">
+          Стратегия контроля качества для 
+          <span id="hook-client-name">TechCorp</span>
+        </h1>
+        <p class="section-lead">
+          Мы изучили ваш продукт. Учитывая ваш стек и специфику нагрузки, классического ручного тестирования будет недостаточно. Мы выделили 3 главных вектора уязвимостей, которые могут привести к репутационным и финансовым потерям в ближайшие полгода.
+        </p>
+
+        <div class="risk-cards-grid">
+          <div class="risk-card">
+            <div class="risk-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <h3 class="risk-title">Отказ при пиковой нагрузке</h3>
+            <p class="risk-desc">Ваша архитектура микросервисов может не выдержать резкого скачка трафика во время рекламных кампаний.</p>
+          </div>
+          
+          <div class="risk-card">
+            <div class="risk-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <h3 class="risk-title">Утечка пользовательских данных</h3>
+            <p class="risk-desc">Недостаток проверок на уязвимости (OWASP) на уровне API открывает двери для перехвата сессий.</p>
+          </div>
+
+          <div class="risk-card">
+            <div class="risk-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <h3 class="risk-title">Долгий Time-to-Market</h3>
+            <p class="risk-desc">Отсутствие CI/CD автотестов увеличивает время регресса до нескольких дней, замедляя выход новых фич.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-loss" style="background: rgba(14, 18, 27, 0.4);">
+      <div class="container">
+        <div class="section-badge danger">Калькулятор рисков</div>
+        <h2 class="section-title">Цена пропущенного <span>бага</span></h2>
+        <p class="section-lead" style="max-width: 800px;">
+          Укажите ваши метрики, чтобы увидеть реальные финансовые потери от простоя системы из-за критических дефектов за один месяц.
+        </p>
+
+        <div class="loss-calc-box">
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Дневная аудитория (DAU):</span>
+              <span class="slider-value" id="val-users">25 000 юзеров</span>
+            </div>
+            <input type="range" id="range-users" min="5000" max="100000" step="1000" value="25000" oninput="calculateLoss()">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Средний чек (LTV / Транзакция):</span>
+              <span class="slider-value" id="val-check">3 500 ₽</span>
+            </div>
+            <input type="range" id="range-check" min="1000" max="25000" step="500" value="3500" oninput="calculateLoss()">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Часы простоя в месяц (инциденты):</span>
+              <span class="slider-value" id="val-hours">6 ч</span>
+            </div>
+            <input type="range" id="range-hours" min="1" max="24" step="1" value="6" oninput="calculateLoss()">
+          </div>
+
+          <!-- Детализация расчета (Вариант 2: Скрытые убытки и ФОТ) -->
+          <div style="background: rgba(7, 9, 14, 0.55); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem 1.25rem; margin-top: 1.25rem; font-size: 0.85rem; color: var(--color-text-secondary); display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>• Прямая упущенная выгода (несовершенные транзакции в пик и отток LTV):</span>
+              <span id="breakdown-business" style="font-family: var(--font-mono); color: #fff; font-weight: 600;">0 ₽</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>• Простой IT-отдела и экстренный хотфикс (5 инженеров × 3 500 ₽/ч + SLA/репутация):</span>
+              <span id="breakdown-dev" style="font-family: var(--font-mono); color: var(--accent-orange); font-weight: 600;">0 ₽</span>
+            </div>
+          </div>
+
+          <div class="loss-result-area" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <div class="loss-block">
+              <div class="loss-label">Общий убыток за месяц:</div>
+              <div class="loss-amount" id="result-loss" style="font-size: 2rem;">0 ₽</div>
+              <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 4px;">Упущенная выручка + ФОТ IT-отдела</div>
+            </div>
+            
+            <div class="save-block">
+              <div class="loss-label">Стоимость QA (мес):</div>
+              <div class="save-amount" id="result-cost" style="color: var(--color-text-primary); font-size: 2rem;">420 000 ₽</div>
+              <div style="font-size: 0.72rem; color: var(--accent-cyan); margin-top: 4px;">⇄ Синхронизировано со сметой (4 нед)</div>
+            </div>
+
+            <div class="save-block">
+              <div class="loss-label" style="color: var(--accent-cyan);">Чистая экономия:</div>
+              <div class="save-amount" id="result-diff" style="color: var(--accent-emerald); font-size: 2.25rem;">0 ₽</div>
+              <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 4px;">Сохраненный бюджет компании</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-roadmap">
+      <div class="container">
+        <div class="section-badge">План действий</div>
+        <h2 class="section-title">Как мы возьмем качество <span>под контроль</span></h2>
+        <p class="section-lead">Первые 30 дней работы нашей QA-команды на вашем проекте.</p>
+
+        <div class="timeline-container">
+          <div class="timeline-nav">
+            <button class="timeline-tab active" onclick="switchTimeline(1, this)">День 1: Аудит</button>
+            <button class="timeline-tab" onclick="switchTimeline(7, this)">День 7: Первые тесты</button>
+            <button class="timeline-tab" onclick="switchTimeline(14, this)">День 14: Автоматизация</button>
+            <button class="timeline-tab" onclick="switchTimeline(30, this)">День 30: Quality Gate</button>
+          </div>
+
+          <div class="timeline-content" id="timeline-body">
+            <!-- Dynamic Content Injected Here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-offer" style="background: rgba(14, 18, 27, 0.4);">
+      <div class="container">
+        <div class="section-badge">Инвестиции</div>
+        <h2 class="section-title">Прозрачная <span>смета</span></h2>
+        <p class="section-lead">Мы подготовили оптимальный стек для вас. Вы можете включать или отключать модули — бюджет и расчет окупаемости пересчитаются автоматически.</p>
+
+        <div style="width: 100%;">
+          <!-- Checkbox Rows -->
+          <label class="mini-calc-row active">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <input type="checkbox" id="offer-manual" checked onchange="handleOfferChange(this)">
+              <div>
+                <div style="font-weight: 600; color: #fff;">Manual QA (Ручное тестирование)</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-muted);">Основа процесса. Проверка UI, верстки и бизнес-логики новых фич.</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="calc-row-price">45 000 ₽ <span style="font-size: 0.75rem; font-weight: 400;">/ нед</span></div>
+              <div style="font-size: 0.72rem; color: var(--color-text-muted); font-family: var(--font-mono);">90 000 ₽ / спринт</div>
+            </div>
+          </label>
+
+          <label class="mini-calc-row active">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <input type="checkbox" id="offer-auto" checked onchange="handleOfferChange(this)">
+              <div>
+                <div style="font-weight: 600; color: #fff;">Test Automation (Автотесты CI/CD)</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-muted);">Ускоряет регресс с дней до минут, блокирует баги до слияния веток.</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="calc-row-price">60 000 ₽ <span style="font-size: 0.75rem; font-weight: 400;">/ нед</span></div>
+              <div style="font-size: 0.72rem; color: var(--color-text-muted); font-family: var(--font-mono);">120 000 ₽ / спринт</div>
+            </div>
+          </label>
+
+          <label class="mini-calc-row">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <input type="checkbox" id="offer-perf" onchange="handleOfferChange(this)">
+              <div>
+                <div style="font-weight: 600; color: #fff;">Performance QA (Нагрузочное тестирование)</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-muted);">Стресс-тесты (k6 / JMeter). Защита от падений при пиковом наплыве трафика.</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="calc-row-price">35 000 ₽ <span style="font-size: 0.75rem; font-weight: 400;">/ нед</span></div>
+              <div style="font-size: 0.72rem; color: var(--color-text-muted); font-family: var(--font-mono);">70 000 ₽ / спринт</div>
+            </div>
+          </label>
+
+          <label class="mini-calc-row">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <input type="checkbox" id="offer-sec" onchange="handleOfferChange(this)">
+              <div>
+                <div style="font-weight: 600; color: #fff;">Security / OWASP Аудит (Безопасность)</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-muted);">Проверка API на уязвимости, защита платежных шлюзов и персональных данных.</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="calc-row-price">40 000 ₽ <span style="font-size: 0.75rem; font-weight: 400;">/ нед</span></div>
+              <div style="font-size: 0.72rem; color: var(--color-text-muted); font-family: var(--font-mono);">80 000 ₽ / спринт</div>
+            </div>
+          </label>
+
+          <div id="offer-min-warning" style="display: none; margin-top: 0.75rem; padding: 0.65rem 1rem; border-radius: var(--radius-sm); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); color: #fcd34d; font-size: 0.8rem;">
+            ⚠️ Для реализации стратегии качества необходим хотя бы один активный модуль тестирования.
+          </div>
+
+          <div class="total-price-box" style="flex-wrap: wrap; gap: 1.5rem;">
+            <div>
+              <div style="font-size: 0.85rem; color: var(--color-text-primary); font-weight: 700; text-transform: uppercase;">Итоговая оценка инвестиций:</div>
+              <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;" id="offer-formula-hint">
+                Ставка: 105 000 ₽/нед • Включает выделенного QA Lead
+              </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+              <div style="text-align: right;">
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase;">За 1 спринт (2 нед):</div>
+                <div style="font-size: 1.75rem; font-family: var(--font-mono); font-weight: 800; color: var(--accent-cyan);" id="offer-total-sprint">
+                  210 000 ₽
+                </div>
+              </div>
+
+              <div style="height: 36px; width: 1px; background: var(--border-subtle);"></div>
+
+              <div style="text-align: right;">
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase;">За месяц (2 спринта):</div>
+                <div style="font-size: 1.35rem; font-family: var(--font-mono); font-weight: 700; color: var(--color-text-primary);" id="offer-total-month">
+                  420 000 ₽
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-cta" style="padding-bottom: 8rem;">
+      <div class="container" style="text-align: center;">
+        <h2 class="section-title">Готовы приступить?</h2>
+        <p class="section-lead" style="max-width: 500px; margin: 0 auto 2.5rem;">
+          Согласуйте план сейчас, и мы выделим команду инженеров для вашего проекта уже завтра.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center; justify-content: center;">
+          <button type="button" class="btn btn-primary" onclick="trackAction('Agree_NDA')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Согласовать план (Подписать NDA)</span>
+          </button>
+          
+          <button type="button" class="btn btn-outline" onclick="trackAction('Schedule_Call')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Назначить тех. звонок</span>
+          </button>
+        </div>
+
+        <div id="cta-toast" style="display: none; margin: 1.5rem auto 0; max-width: 520px; padding: 1rem 1.25rem; border-radius: var(--radius-sm); background: rgba(16, 185, 129, 0.12); border: 1px solid var(--accent-emerald); color: #a7f3d0; font-size: 0.9rem; transition: all 0.3s ease;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    
+    // 1. Mock Data generation (Prepared for dynamic generation)
+    // В реальном проекте эти данные берутся из Backend или шифруются в Base64 в URL параметрах.
+    const proposalData = {
+      clientName: "TechCorp Inc.",
+      defaultUsers: 25000,
+      defaultCheck: 3500,
+      defaultHours: 6,
+      recommendedStack: { manual: true, auto: true, perf: false, sec: false }
+    };
+
+    // Analytics Stub
+    function trackEvent(eventName, eventData = {}) {
+      // Здесь будет код отправки в аналитику / Telegram
+      console.log(`[Analytics Event] ${eventName}:`, eventData);
+    }
+
+    function initProposal() {
+      // 1. Инициализация персональных данных клиента
+      document.getElementById('client-name-display').textContent = proposalData.clientName;
+      document.getElementById('hook-client-name').textContent = proposalData.clientName;
+      document.getElementById('client-avatar-initial').textContent = proposalData.clientName.charAt(0);
+      
+      // 2. Применяем дефолтные метрики клиента к калькулятору рисков
+      document.getElementById('range-users').value = proposalData.defaultUsers;
+      document.getElementById('range-check').value = proposalData.defaultCheck;
+      document.getElementById('range-hours').value = proposalData.defaultHours;
+
+      // 3. Применяем рекомендованный стек к чекбоксам сметы
+      document.getElementById('offer-manual').checked = Boolean(proposalData.recommendedStack.manual);
+      document.getElementById('offer-auto').checked = Boolean(proposalData.recommendedStack.auto);
+      document.getElementById('offer-perf').checked = Boolean(proposalData.recommendedStack.perf);
+      document.getElementById('offer-sec').checked = Boolean(proposalData.recommendedStack.sec);
+
+      // Трекинг открытия
+      trackEvent('Proposal_Opened', { client: proposalData.clientName });
+
+      // Инициализация расчетов и таймлайна
+      updateOfferPrice();
+      switchTimeline(1, document.querySelector('.timeline-tab.active'));
+    }
+
+    function getWeeklyQACost() {
+      const manual = document.getElementById('offer-manual').checked;
+      const auto = document.getElementById('offer-auto').checked;
+      const perf = document.getElementById('offer-perf').checked;
+      const sec = document.getElementById('offer-sec').checked;
+
+      let weeklyPrice = 0;
+      if (manual) weeklyPrice += 45000;
+      if (auto) weeklyPrice += 60000;
+      if (perf) weeklyPrice += 35000;
+      if (sec) weeklyPrice += 40000;
+
+      return weeklyPrice;
+    }
+
+    function getMonthlyQACost() {
+      // Стоимость услуг за месяц (4 недели = 2 спринта по 2 недели)
+      return getWeeklyQACost() * 4;
+    }
+
+    function handleOfferChange(changedCheckbox) {
+      const checkboxes = [
+        document.getElementById('offer-manual'),
+        document.getElementById('offer-auto'),
+        document.getElementById('offer-perf'),
+        document.getElementById('offer-sec')
+      ];
+      
+      const checkedCount = checkboxes.filter(cb => cb.checked).length;
+      const warningEl = document.getElementById('offer-min-warning');
+
+      // Защита от пустой сметы: нельзя отключить последний оставшийся модуль
+      if (checkedCount === 0) {
+        changedCheckbox.checked = true;
+        if (warningEl) {
+          warningEl.style.display = 'block';
+          setTimeout(() => { warningEl.style.display = 'none'; }, 3500);
+        }
+        return;
+      }
+
+      if (warningEl) warningEl.style.display = 'none';
+      updateOfferPrice();
+    }
+
+    function calculateLoss() {
+      const users = parseInt(document.getElementById('range-users').value, 10);
+      const check = parseInt(document.getElementById('range-check').value, 10);
+      const hours = parseInt(document.getElementById('range-hours').value, 10);
+      
+      // Обновляем лейблы ползунков
+      document.getElementById('val-users').textContent = new Intl.NumberFormat('ru-RU').format(users) + ' юзеров';
+      document.getElementById('val-check').textContent = new Intl.NumberFormat('ru-RU').format(check) + ' ₽';
+      document.getElementById('val-hours').textContent = hours + ' ч';
+
+      // 1. Упущенная бизнес-выгода: пиковый трафик (12% DAU в час) × конверсия (2.5%) × чек × часы + базовый отток клиентов (Churn LTV)
+      const peakHourlyTraffic = users * 0.12;
+      const conversionRate = 0.025; 
+      const hourlyBusinessLoss = Math.round(peakHourlyTraffic * conversionRate * check);
+      const ltvChurnRisk = 320000; // Потеря лояльных клиентов и ремаркетингового бюджета при падении продакшена
+      const totalBusinessLoss = (hourlyBusinessLoss * hours) + ltvChurnRisk;
+      
+      // 2. Вариант 2: Скрытые убытки (5 инженеров × 3 500 ₽/час = 17 500 ₽/час на тушение пожара + базовые издержки переключения контекста и SLA)
+      const engineersCount = 5;
+      const engineerHourlyRate = 3500;
+      const devEmergencyPerHour = engineersCount * engineerHourlyRate; // 17 500 ₽/ч
+      const baseIncidentOverhead = 410000; // Срыв сроков спринта, простой маркетинга и репутационные SLA-издержки
+      const totalDevLoss = baseIncidentOverhead + (hours * devEmergencyPerHour);
+
+      // 3. Вариант 3: Динамическая стоимость нашей команды в месяц (напрямую связана с чекбоксами в блоке "Прозрачная смета")
+      const qaCost = getMonthlyQACost(); 
+
+      // Общий убыток компании (гарантированно перекрывает даже максимальный стек из 4 модулей = 720 000 ₽/мес)
+      const finalMonthlyLoss = totalBusinessLoss + totalDevLoss;
+      
+      // Вычисляем разницу (чистая экономия клиента)
+      const difference = finalMonthlyLoss - qaCost;
+
+      // Обновляем детализацию (Вариант 2)
+      document.getElementById('breakdown-business').textContent = new Intl.NumberFormat('ru-RU').format(totalBusinessLoss) + ' ₽';
+      document.getElementById('breakdown-dev').textContent = new Intl.NumberFormat('ru-RU').format(totalDevLoss) + ' ₽';
+
+      // Обновляем итоговые показатели (Вариант 3)
+      document.getElementById('result-loss').textContent = new Intl.NumberFormat('ru-RU').format(finalMonthlyLoss) + ' ₽';
+      document.getElementById('result-cost').textContent = new Intl.NumberFormat('ru-RU').format(qaCost) + ' ₽';
+      
+      const diffEl = document.getElementById('result-diff');
+      diffEl.textContent = '+ ' + new Intl.NumberFormat('ru-RU').format(difference) + ' ₽';
+      diffEl.style.color = 'var(--accent-emerald)';
+      
+      // Отправляем аналитику
+      trackEvent('Loss_Calculator_Used', { 
+        businessLoss: totalBusinessLoss,
+        devLoss: totalDevLoss,
+        estimatedLoss: finalMonthlyLoss, 
+        qaCost: qaCost,
+        saved: difference 
+      });
+    }
+
+    const timelineData = {
+      1: {
+        title: "Развертывание и Аудит",
+        items: [
+          "Подписание NDA, получение доступов к тестовым стендам.",
+          "Глубокий анализ существующей архитектуры и баг-трекера.",
+          "Составление матрицы покрытия (Test Coverage Matrix)."
+        ]
+      },
+      7: {
+        title: "Первые результаты",
+        items: [
+          "Запуск ручного тестирования критических путей (Smoke QA).",
+          "Оформление первых баг-репортов с логами и видео.",
+          "Выбор фреймворка для автоматизации (Playwright / PyTest)."
+        ]
+      },
+      14: {
+        title: "Старт автоматизации",
+        items: [
+          "Написание первых E2E автотестов для процесса авторизации/оплаты.",
+          "Интеграция тестов в ваш CI/CD (GitLab, GitHub Actions).",
+          "Обучение вашей команды работе с отчетами Allure."
+        ]
+      },
+      30: {
+        title: "Quality Gate в действии",
+        items: [
+          "Автотесты покрывают 60%+ критического функционала.",
+          "Внедрен Quality Gate: релизы с багами блокируются автоматически.",
+          "Планирование нагрузочного тестирования на следующий месяц."
+        ]
+      }
+    };
+
+    function switchTimeline(day, tabElement) {
+      // Update Active Tab
+      document.querySelectorAll('.timeline-tab').forEach(t => t.classList.remove('active'));
+      tabElement.classList.add('active');
+
+      // Update Content
+      const data = timelineData[day];
+      const container = document.getElementById('timeline-body');
+      
+      let listHtml = data.items.map(item => `
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span style="color: var(--color-text-primary);">${item}</span>
+        </li>
+      `).join('');
+
+      container.innerHTML = `
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 1.5rem;">${data.title}</h3>
+        <ul class="roadmap-list">${listHtml}</ul>
+      `;
+
+      trackEvent('Timeline_Tab_Clicked', { day: day });
+    }
+
+    function updateOfferPrice() {
+      const manual = document.getElementById('offer-manual').checked;
+      const auto = document.getElementById('offer-auto').checked;
+      const perf = document.getElementById('offer-perf').checked;
+      const sec = document.getElementById('offer-sec').checked;
+
+      // Toggle Active styling for rows
+      document.getElementById('offer-manual').closest('.mini-calc-row').classList.toggle('active', manual);
+      document.getElementById('offer-auto').closest('.mini-calc-row').classList.toggle('active', auto);
+      document.getElementById('offer-perf').closest('.mini-calc-row').classList.toggle('active', perf);
+      document.getElementById('offer-sec').closest('.mini-calc-row').classList.toggle('active', sec);
+
+      const weeklyPrice = getWeeklyQACost();
+      const sprintPrice = weeklyPrice * 2; // 1 спринт = 2 недели
+      const monthPrice = weeklyPrice * 4;  // 1 месяц = 4 недели (2 спринта)
+      
+      const fmt = new Intl.NumberFormat('ru-RU');
+      document.getElementById('offer-formula-hint').textContent = `Сумма ставок: ${fmt.format(weeklyPrice)} ₽/нед • Включает выделенного QA Lead`;
+      document.getElementById('offer-total-sprint').textContent = fmt.format(sprintPrice) + ' ₽';
+      document.getElementById('offer-total-month').textContent = fmt.format(monthPrice) + ' ₽';
+
+      // Синхронизируем верхний калькулятор рисков с новой ценой
+      if (document.getElementById('range-users')) {
+        calculateLoss();
+      }
+
+      trackEvent('Offer_Stack_Changed', { manual, auto, perf, sec, sprintPrice, monthPrice });
+    }
+
+    function trackAction(actionType) {
+      trackEvent('CTA_Clicked', { type: actionType });
+      const toast = document.getElementById('cta-toast');
+      if (toast) {
+        if (actionType === 'Agree_NDA') {
+          toast.textContent = '✓ Запрос на NDA зафиксирован. Подготавливаем персональный пакет документов для ' + proposalData.clientName + '...';
+        } else {
+          toast.textContent = '✓ Запрос отправлен! Открываем расписание QA Lead для выбора удобного слота звонка...';
+        }
+        toast.style.display = 'block';
+      }
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', initProposal);
+  </script>
+</body>
+</html>
